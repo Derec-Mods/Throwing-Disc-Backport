@@ -151,23 +151,27 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
         Direction face = hitResult.getDirection();
         Direction.Axis axis = face.getAxis();
         Vec3 motion = getDeltaMovement();
-        double bounciness = 0.85;
 
         double mx = motion.x;
         double my = motion.y;
         double mz = motion.z;
 
         if (axis == Direction.Axis.X) {
-            mx = -mx * bounciness;
+            mx = -mx;
         } else if (axis == Direction.Axis.Y) {
-            my = -my * bounciness;
+            my = -my;
         } else if (axis == Direction.Axis.Z) {
-            mz = -mz * bounciness;
+            mz = -mz;
+        }
+
+        Vec3 reflected = new Vec3(mx, my, mz).scale(1.08);
+        if (reflected.length() > 1.55) {
+            reflected = reflected.normalize().scale(1.55);
         }
 
         Vec3 normal = Vec3.atLowerCornerOf(face.getNormal());
         setPos(hitResult.getLocation().add(normal.scale(0.08)));
-        setDeltaMovement(mx, my, mz);
+        setDeltaMovement(reflected);
         playSound(SoundEvents.TRIDENT_HIT_GROUND, 0.9F, 1.2F);
 
         this.bounces++;
