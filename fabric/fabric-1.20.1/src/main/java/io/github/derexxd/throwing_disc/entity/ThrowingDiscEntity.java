@@ -98,11 +98,13 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
 
                 if (dist < 1.3) {
                     if (owner instanceof Player player) {
-                        ItemStack returnStack = getItem();
-                        if (player.getItemInHand(this.thrownHand).isEmpty()) {
-                            player.setItemInHand(this.thrownHand, returnStack);
-                        } else if (!player.getInventory().add(returnStack)) {
-                            player.drop(returnStack, false);
+                        if (!player.getAbilities().instabuild) {
+                            ItemStack returnStack = getItem();
+                            if (player.getItemInHand(this.thrownHand).isEmpty()) {
+                                player.setItemInHand(this.thrownHand, returnStack);
+                            } else if (!player.getInventory().add(returnStack)) {
+                                player.drop(returnStack, false);
+                            }
                         }
                         level().playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.TRIDENT_RETURN, SoundSource.PLAYERS, 0.6F, 1.0F);
                     }
