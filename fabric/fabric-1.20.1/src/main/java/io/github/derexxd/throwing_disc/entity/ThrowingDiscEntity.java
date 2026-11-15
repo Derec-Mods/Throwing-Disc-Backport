@@ -104,7 +104,7 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
                         } else if (!player.getInventory().add(returnStack)) {
                             player.drop(returnStack, false);
                         }
-                        level().playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.4F, 2.0F);
+                        level().playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.TRIDENT_RETURN, SoundSource.PLAYERS, 0.6F, 1.0F);
                     }
                     discard();
                     return;
@@ -133,7 +133,7 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
         Entity owner = getOwner();
         DamageSource damageSource = damageSources().thrown(this, owner);
         target.hurt(damageSource, this.tier.getDamage());
-        playSound(SoundEvents.PLAYER_ATTACK_SWEEP, 1.0F, 1.2F);
+        playSound(SoundEvents.TRIDENT_HIT, 1.0F, 1.0F);
     }
 
     @Override
@@ -166,7 +166,7 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
         Vec3 normal = Vec3.atLowerCornerOf(face.getNormal());
         setPos(hitResult.getLocation().add(normal.scale(0.08)));
         setDeltaMovement(mx, my, mz);
-        playSound(SoundEvents.COPPER_BREAK, 0.8F, 1.4F);
+        playSound(SoundEvents.TRIDENT_HIT_GROUND, 0.9F, 1.2F);
 
         this.bounces++;
         if (this.bounces >= this.tier.getMaxBounces()) {
