@@ -35,11 +35,14 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
     private UUID ownerUUID;
     private int flightTicks = 0;
     private int bounces = 0;
+    private int lastBounceTick = -1;
+    private int bouncesThisTick = 0;
     private boolean returning = false;
     private final Set<UUID> hitEntities = new HashSet<>();
 
     public ThrowingDiscEntity(EntityType<? extends ThrowableItemProjectile> entityType, Level level) {
         super(entityType, level);
+        this.setNoGravity(true);
     }
 
     public ThrowingDiscEntity(Level level, LivingEntity shooter, ItemStack stack, ThrowingDiscTier tier, InteractionHand hand) {
@@ -48,6 +51,7 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
         this.tier = tier;
         this.thrownHand = hand;
         this.ownerUUID = shooter.getUUID();
+        this.setNoGravity(true);
         if (!level.isClientSide()) {
             ACTIVE_DISCS.add(this);
         }
@@ -72,7 +76,7 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
 
     @Override
     protected float getGravity() {
-        return this.returning ? 0.0F : 0.015F;
+        return 0.0F;
     }
 
     @Override
@@ -122,7 +126,7 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
                     return;
                 }
 
-                double speed = Math.min(1.5, 0.6 + (this.flightTicks * 0.025));
+                double speed = Math.min(1.2, 0.5 + (this.flightTicks * 0.02));
                 Vec3 desiredVelocity = dir.normalize().scale(speed);
                 Vec3 currentVelocity = getDeltaMovement();
                 setDeltaMovement(currentVelocity.lerp(desiredVelocity, 0.28));
@@ -150,6 +154,10 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
 
     @Override
     protected void onHitBlock(BlockHitResult hitResult) {
+        if (this.returning) {
+            return;
+        }
+
         BlockPos pos = hitResult.getBlockPos();
         BlockState state = level().getBlockState(pos);
 
@@ -159,28 +167,32 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
         }
 
         Direction face = hitResult.getDirection();
-        Direction.Axis axis = face.getAxis();
+        Vec3 normal = Vec3.atLowerCornerOf(face.getNormal());
         Vec3 motion = getDeltaMovement();
 
-        double mx = motion.x;
-        double my = motion.y;
-        double mz = motion.z;
-
-        if (axis == Direction.Axis.X) {
-            mx = -mx;
-        } else if (axis == Direction.Axis.Y) {
-            my = -my;
-        } else if (axis == Direction.Axis.Z) {
-            mz = -mz;
+        double dot = motion.dot(normal);
+        if (dot >= 0.0) {
+            return;
         }
 
-        Vec3 reflected = new Vec3(mx, my, mz).scale(1.08);
-        if (reflected.length() > 1.55) {
-            reflected = reflected.normalize().scale(1.55);
+        if (this.tickCount == this.lastBounceTick) {
+            this.bouncesThisTick++;
+            if (this.bouncesThisTick > 2) {
+                this.returning = true;
+                this.hitEntities.clear();
+                return;
+            }
+        } else {
+            this.lastBounceTick = this.tickCount;
+            this.bouncesThisTick = 1;
         }
 
-        Vec3 normal = Vec3.atLowerCornerOf(face.getNormal());
-        setPos(hitResult.getLocation().add(normal.scale(0.08)));
+        Vec3 reflected = motion.subtract(normal.scale(2.0 * dot));
+        if (reflected.length() > 1.25) {
+            reflected = reflected.normalize().scale(1.25);
+        }
+
+        setPos(hitResult.getLocation().add(normal.scale(0.28)));
         setDeltaMovement(reflected);
         playSound(SoundEvents.TRIDENT_HIT_GROUND, 0.9F, 1.2F);
 

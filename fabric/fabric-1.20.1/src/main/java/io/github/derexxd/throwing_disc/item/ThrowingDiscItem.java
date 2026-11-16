@@ -31,7 +31,7 @@ public class ThrowingDiscItem extends Item {
 
         if (!level.isClientSide()) {
             ThrowingDiscEntity disc = new ThrowingDiscEntity(level, player, itemStack, this.tier, hand);
-            disc.shootFromRotation(player, player.getXRot(), player.getYRot(), 0.0F, 1.4F, 0.5F);
+            disc.shootFromRotation(player, player.getXRot(), player.getYRot(), 0.0F, 1.1F, 0.1F);
             level.addFreshEntity(disc);
         }
 
