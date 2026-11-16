@@ -27,7 +27,7 @@ public class ThrowingDiscItem extends Item {
     public InteractionResult use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.TRIDENT_THROW, SoundSource.PLAYERS, 0.8F, 1.2F);
-        player.getCooldowns().addCooldown(this, 10);
+        player.getCooldowns().addCooldown(stack, 10);
 
         if (!level.isClientSide()) {
             ThrowingDiscEntity disc = new ThrowingDiscEntity(level, player, stack, this.tier, hand);

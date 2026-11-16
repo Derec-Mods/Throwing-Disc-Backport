@@ -5,6 +5,7 @@ import io.github.derexxd.throwing_disc.item.ThrowingDiscTier;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -98,7 +99,9 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
 
             if (owner == null || !owner.isAlive()) {
                 if (this.flightTicks > 600) {
-                    spawnAtLocation(getItem());
+                    if (level() instanceof ServerLevel serverLevel) {
+                        spawnAtLocation(serverLevel, getItem());
+                    }
                     discard();
                     return;
                 }
@@ -173,7 +176,7 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
         }
 
         Direction face = hitResult.getDirection();
-        Vec3 normal = Vec3.atLowerCornerOf(face.getNormal());
+        Vec3 normal = face.getUnitVec3();
         Vec3 motion = getDeltaMovement();
 
         double dot = motion.dot(normal);

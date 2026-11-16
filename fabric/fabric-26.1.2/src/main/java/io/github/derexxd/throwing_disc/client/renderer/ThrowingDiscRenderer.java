@@ -3,51 +3,46 @@ package io.github.derexxd.throwing_disc.client.renderer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import io.github.derexxd.throwing_disc.entity.ThrowingDiscEntity;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.client.renderer.item.ItemModelResolver;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.renderer.texture.TextureAtlas;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemDisplayContext;
 
-public class ThrowingDiscRenderer extends EntityRenderer<ThrowingDiscEntity> {
-    private final ItemRenderer itemRenderer;
+public class ThrowingDiscRenderer extends EntityRenderer<ThrowingDiscEntity, ThrowingDiscRenderState> {
+    private final ItemModelResolver itemModelResolver;
 
     public ThrowingDiscRenderer(EntityRendererProvider.Context context) {
         super(context);
-        this.itemRenderer = context.getItemRenderer();
+        this.itemModelResolver = context.getItemModelResolver();
     }
 
     @Override
-    public void render(ThrowingDiscEntity entity, float entityYaw, float partialTicks, PoseStack poseStack, MultiBufferSource buffer, int packedLight) {
+    public ThrowingDiscRenderState createRenderState() {
+        return new ThrowingDiscRenderState();
+    }
+
+    @Override
+    public void extractRenderState(ThrowingDiscEntity entity, ThrowingDiscRenderState state, float partialTicks) {
+        super.extractRenderState(entity, state, partialTicks);
+        this.itemModelResolver.updateForNonLiving(state.item, entity.getItem(), ItemDisplayContext.FIXED, entity);
+        state.ageInTicks = (float) entity.tickCount + partialTicks;
+    }
+
+    @Override
+    public void submit(ThrowingDiscRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState cameraRenderState) {
         poseStack.pushPose();
+        poseStack.translate(0.0F, 0.1F, 0.0F);
 
-        float age = (float) entity.tickCount + partialTicks;
-        float spinAngle = age * 40.0F;
-
+        float spinAngle = state.ageInTicks * 40.0F;
         poseStack.mulPose(Axis.XP.rotationDegrees(90.0F));
         poseStack.mulPose(Axis.ZP.rotationDegrees(spinAngle));
-        poseStack.scale(1.0F, 1.0F, 1.0F);
 
-        this.itemRenderer.renderStatic(
-                entity.getItem(),
-                ItemDisplayContext.FIXED,
-                packedLight,
-                OverlayTexture.NO_OVERLAY,
-                poseStack,
-                buffer,
-                entity.level(),
-                entity.getId()
-        );
+        state.item.submit(poseStack, collector, state.lightCoords, OverlayTexture.NO_OVERLAY, state.outlineColor);
 
         poseStack.popPose();
-        super.render(entity, entityYaw, partialTicks, poseStack, buffer, packedLight);
-    }
-
-    @Override
-    public ResourceLocation getTextureLocation(ThrowingDiscEntity entity) {
-        return TextureAtlas.LOCATION_BLOCKS;
+        super.submit(state, poseStack, collector, cameraRenderState);
     }
 }
