@@ -29,11 +29,11 @@ public class ThrowingDiscRenderer extends EntityRenderer<ThrowingDiscEntity> {
 
         poseStack.mulPose(Axis.XP.rotationDegrees(90.0F));
         poseStack.mulPose(Axis.ZP.rotationDegrees(spinAngle));
-        poseStack.scale(1.2F, 1.2F, 1.2F);
+        poseStack.scale(1.0F, 1.0F, 1.0F);
 
         this.itemRenderer.renderStatic(
                 entity.getItem(),
-                ItemDisplayContext.GROUND,
+                ItemDisplayContext.FIXED,
                 packedLight,
                 OverlayTexture.NO_OVERLAY,
                 poseStack,

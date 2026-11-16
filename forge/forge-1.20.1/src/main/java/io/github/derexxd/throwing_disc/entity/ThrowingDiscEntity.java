@@ -43,6 +43,7 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
 
     public ThrowingDiscEntity(EntityType<? extends ThrowableItemProjectile> entityType, Level level) {
         super(entityType, level);
+        this.setNoGravity(true);
     }
 
     public ThrowingDiscEntity(Level level, LivingEntity shooter, ItemStack stack, ThrowingDiscTier tier, InteractionHand hand) {
@@ -51,6 +52,7 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
         this.tier = tier;
         this.thrownHand = hand;
         this.ownerUUID = shooter.getUUID();
+        this.setNoGravity(true);
         if (!level.isClientSide()) {
             ACTIVE_DISCS.add(this);
         }
@@ -75,7 +77,7 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
 
     @Override
     protected float getGravity() {
-        return this.returning ? 0.0F : 0.015F;
+        return 0.0F;
     }
 
     @Override
