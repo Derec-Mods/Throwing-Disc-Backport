@@ -6,10 +6,10 @@ import net.minecraft.world.item.crafting.Ingredient;
 import java.util.function.Supplier;
 
 public enum ThrowingDiscTier {
-    COPPER(5.0F, 190, 2, () -> Ingredient.of(Items.COPPER_INGOT)),
-    IRON(6.0F, 250, 3, () -> Ingredient.of(Items.IRON_INGOT)),
-    GOLDEN(4.5F, 64, 2, () -> Ingredient.of(Items.GOLD_INGOT)),
-    DIAMOND(7.0F, 1561, 4, () -> Ingredient.of(Items.DIAMOND)),
+    COPPER(5.0F, 190, 5, () -> Ingredient.of(Items.COPPER_INGOT)),
+    IRON(6.0F, 250, 5, () -> Ingredient.of(Items.IRON_INGOT)),
+    GOLDEN(4.5F, 64, 5, () -> Ingredient.of(Items.GOLD_INGOT)),
+    DIAMOND(7.0F, 1561, 5, () -> Ingredient.of(Items.DIAMOND)),
     NETHERITE(8.0F, 2031, 5, () -> Ingredient.of(Items.NETHERITE_INGOT));
 
     private final float damage;

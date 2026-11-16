@@ -38,6 +38,7 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
     private UUID ownerUUID;
     private int flightTicks = 0;
     private int bounces = 0;
+    private int lastBounceTick = -10;
     private boolean returning = false;
     private final Set<UUID> hitEntities = new HashSet<>();
 
@@ -127,7 +128,7 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
                     return;
                 }
 
-                double speed = Math.min(1.5, 0.6 + (this.flightTicks * 0.025));
+                double speed = Math.min(1.2, 0.5 + (this.flightTicks * 0.02));
                 Vec3 desiredVelocity = dir.normalize().scale(speed);
                 Vec3 currentVelocity = getDeltaMovement();
                 setDeltaMovement(currentVelocity.lerp(desiredVelocity, 0.28));
@@ -155,6 +156,10 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
 
     @Override
     protected void onHitBlock(BlockHitResult hitResult) {
+        if (this.returning) {
+            return;
+        }
+
         BlockPos pos = hitResult.getBlockPos();
         BlockState state = level().getBlockState(pos);
 
@@ -162,6 +167,11 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
             level().destroyBlock(pos, true, this);
             return;
         }
+
+        if (this.tickCount - this.lastBounceTick < 2) {
+            return;
+        }
+        this.lastBounceTick = this.tickCount;
 
         Direction face = hitResult.getDirection();
         Direction.Axis axis = face.getAxis();
@@ -171,26 +181,27 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
         double my = motion.y;
         double mz = motion.z;
 
-        if (axis == Direction.Axis.X) {
-            mx = -mx;
-        } else if (axis == Direction.Axis.Y) {
-            my = -my;
-        } else if (axis == Direction.Axis.Z) {
-            mz = -mz;
-        }
-
-        Vec3 reflected = new Vec3(mx, my, mz).scale(1.08);
-        if (reflected.length() > 1.55) {
-            reflected = reflected.normalize().scale(1.55);
-        }
-
         Vec3 normal = Vec3.atLowerCornerOf(face.getNormal());
-        setPos(hitResult.getLocation().add(normal.scale(0.08)));
+
+        if (axis == Direction.Axis.X) {
+            mx = Math.abs(mx) * normal.x;
+        } else if (axis == Direction.Axis.Y) {
+            my = Math.abs(my) * normal.y;
+        } else if (axis == Direction.Axis.Z) {
+            mz = Math.abs(mz) * normal.z;
+        }
+
+        Vec3 reflected = new Vec3(mx, my, mz).scale(1.02);
+        if (reflected.length() > 1.25) {
+            reflected = reflected.normalize().scale(1.25);
+        }
+
+        setPos(hitResult.getLocation().add(normal.scale(0.18)));
         setDeltaMovement(reflected);
         playSound(SoundEvents.TRIDENT_HIT_GROUND, 0.9F, 1.2F);
 
         this.bounces++;
-        if (this.bounces >= this.tier.getMaxBounces()) {
+        if (this.bounces >= 5) {
             this.returning = true;
             this.hitEntities.clear();
         }
