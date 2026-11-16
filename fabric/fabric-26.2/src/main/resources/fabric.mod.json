@@ -3,15 +3,12 @@
 	"id": "throwing_disc_backport",
 	"version": "${version}",
 	"name": "Throwing Disc Backport",
-	"description": "Backports the upcoming Throwing Disc weapon to Minecraft 26.1.2.",
+	"description": "Backports the upcoming Throwing Disc weapon into earlier Minecraft versions with real ricochet physics.",
 	"authors": [
 		"DerexXD"
 	],
-	"contact": {
-		"homepage": "https://www.derekchen.dev/"
-	},
 	"license": "CC0-1.0",
-	"icon": "assets/throwing_disc_backport/icon.png",
+	"icon": "assets/throwing_disc_backport/textures/item/diamond_throwing_disc.png",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
@@ -23,7 +20,7 @@
 	},
 	"depends": {
 		"fabricloader": ">=0.19.5",
-		"minecraft": "~26.1.2",
+		"minecraft": "~26.2",
 		"java": ">=25",
 		"fabric-api": "*"
 	}

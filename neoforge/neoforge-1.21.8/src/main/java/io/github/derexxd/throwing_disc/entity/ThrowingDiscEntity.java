@@ -4,7 +4,6 @@ import io.github.derexxd.throwing_disc.item.ModItems;
 import io.github.derexxd.throwing_disc.item.ThrowingDiscTier;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -22,6 +21,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
@@ -248,37 +249,32 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
     }
 
     @Override
-    public void addAdditionalSaveData(CompoundTag tag) {
-        super.addAdditionalSaveData(tag);
-        tag.putInt("FlightTicks", this.flightTicks);
-        tag.putInt("Bounces", this.bounces);
-        tag.putBoolean("Returning", this.returning);
-        tag.putString("Tier", this.tier.name());
-        tag.putInt("ThrownHand", this.thrownHand.ordinal());
+    public void addAdditionalSaveData(ValueOutput output) {
+        super.addAdditionalSaveData(output);
+        output.putInt("FlightTicks", this.flightTicks);
+        output.putInt("Bounces", this.bounces);
+        output.putBoolean("Returning", this.returning);
+        output.putString("Tier", this.tier.name());
+        output.putInt("ThrownHand", this.thrownHand.ordinal());
         if (this.ownerUUID != null) {
-            tag.putUUID("OwnerUUID", this.ownerUUID);
+            output.putString("OwnerUUID", this.ownerUUID.toString());
         }
     }
 
     @Override
-    public void readAdditionalSaveData(CompoundTag tag) {
-        super.readAdditionalSaveData(tag);
-        this.flightTicks = tag.getInt("FlightTicks");
-        this.bounces = tag.getInt("Bounces");
-        this.returning = tag.getBoolean("Returning");
-        if (tag.contains("Tier")) {
+    public void readAdditionalSaveData(ValueInput input) {
+        super.readAdditionalSaveData(input);
+        this.flightTicks = input.getIntOr("FlightTicks", 0);
+        this.bounces = input.getIntOr("Bounces", 0);
+        this.returning = input.getBooleanOr("Returning", false);
+        this.tier = ThrowingDiscTier.valueOf(input.getStringOr("Tier", "IRON"));
+        int handIdx = input.getIntOr("ThrownHand", 0);
+        this.thrownHand = handIdx >= 0 && handIdx < InteractionHand.values().length ? InteractionHand.values()[handIdx] : InteractionHand.MAIN_HAND;
+        input.getString("OwnerUUID").ifPresent(uuidStr -> {
             try {
-                this.tier = ThrowingDiscTier.valueOf(tag.getString("Tier"));
-            } catch (IllegalArgumentException e) {
-                this.tier = ThrowingDiscTier.IRON;
+                this.ownerUUID = UUID.fromString(uuidStr);
+            } catch (Exception ignored) {
             }
-        }
-        if (tag.contains("ThrownHand")) {
-            int handOrdinal = tag.getInt("ThrownHand");
-            this.thrownHand = handOrdinal == 1 ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
-        }
-        if (tag.hasUUID("OwnerUUID")) {
-            this.ownerUUID = tag.getUUID("OwnerUUID");
-        }
+        });
     }
 }

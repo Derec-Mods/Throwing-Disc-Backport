@@ -1,5 +1,6 @@
 package io.github.derexxd.throwing_disc;
 
+import io.github.derexxd.throwing_disc.client.ClientModEvents;
 import io.github.derexxd.throwing_disc.entity.ModEntities;
 import io.github.derexxd.throwing_disc.entity.ThrowingDiscEntity;
 import io.github.derexxd.throwing_disc.item.ModItems;
@@ -17,6 +18,7 @@ public class ThrowingDiscNeoForge {
     public ThrowingDiscNeoForge(IEventBus modEventBus) {
         ModItems.register(modEventBus);
         ModEntities.register(modEventBus);
+        modEventBus.addListener(ClientModEvents::registerRenderers);
         NeoForge.EVENT_BUS.register(this);
     }
 
