@@ -38,7 +38,8 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
     private UUID ownerUUID;
     private int flightTicks = 0;
     private int bounces = 0;
-    private int lastBounceTick = -10;
+    private int lastBounceTick = -1;
+    private int bouncesThisTick = 0;
     private boolean returning = false;
     private final Set<UUID> hitEntities = new HashSet<>();
 
@@ -168,35 +169,33 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
             return;
         }
 
-        if (this.tickCount - this.lastBounceTick < 2) {
-            return;
-        }
-        this.lastBounceTick = this.tickCount;
-
         Direction face = hitResult.getDirection();
-        Direction.Axis axis = face.getAxis();
+        Vec3 normal = Vec3.atLowerCornerOf(face.getNormal());
         Vec3 motion = getDeltaMovement();
 
-        double mx = motion.x;
-        double my = motion.y;
-        double mz = motion.z;
-
-        Vec3 normal = Vec3.atLowerCornerOf(face.getNormal());
-
-        if (axis == Direction.Axis.X) {
-            mx = Math.abs(mx) * normal.x;
-        } else if (axis == Direction.Axis.Y) {
-            my = Math.abs(my) * normal.y;
-        } else if (axis == Direction.Axis.Z) {
-            mz = Math.abs(mz) * normal.z;
+        double dot = motion.dot(normal);
+        if (dot >= 0.0) {
+            return;
         }
 
-        Vec3 reflected = new Vec3(mx, my, mz).scale(1.02);
+        if (this.tickCount == this.lastBounceTick) {
+            this.bouncesThisTick++;
+            if (this.bouncesThisTick > 2) {
+                this.returning = true;
+                this.hitEntities.clear();
+                return;
+            }
+        } else {
+            this.lastBounceTick = this.tickCount;
+            this.bouncesThisTick = 1;
+        }
+
+        Vec3 reflected = motion.subtract(normal.scale(2.0 * dot));
         if (reflected.length() > 1.25) {
             reflected = reflected.normalize().scale(1.25);
         }
 
-        setPos(hitResult.getLocation().add(normal.scale(0.18)));
+        setPos(hitResult.getLocation().add(normal.scale(0.28)));
         setDeltaMovement(reflected);
         playSound(SoundEvents.TRIDENT_HIT_GROUND, 0.9F, 1.2F);
 
