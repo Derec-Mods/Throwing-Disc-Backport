@@ -10,7 +10,8 @@ public enum ThrowingDiscTier {
     IRON(6.0F, 250, 5, () -> Ingredient.of(Items.IRON_INGOT)),
     GOLDEN(4.5F, 64, 5, () -> Ingredient.of(Items.GOLD_INGOT)),
     DIAMOND(7.0F, 1561, 5, () -> Ingredient.of(Items.DIAMOND)),
-    NETHERITE(8.0F, 2031, 5, () -> Ingredient.of(Items.NETHERITE_INGOT));
+    NETHERITE(8.0F, 2031, 5, () -> Ingredient.of(Items.NETHERITE_INGOT)),
+    CAPTAIN_AMERICA(10.0F, 3000, 10, () -> Ingredient.of(Items.NETHERITE_INGOT));
 
     private final float damage;
     private final int durability;
