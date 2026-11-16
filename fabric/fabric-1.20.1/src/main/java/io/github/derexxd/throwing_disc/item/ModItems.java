@@ -7,6 +7,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Rarity;
 
 public class ModItems {
     public static final Item COPPER_THROWING_DISC = register("copper_throwing_disc",
@@ -23,6 +24,9 @@ public class ModItems {
 
     public static final Item NETHERITE_THROWING_DISC = register("netherite_throwing_disc",
             new ThrowingDiscItem(ThrowingDiscTier.NETHERITE, new Item.Properties().durability(ThrowingDiscTier.NETHERITE.getDurability()).fireResistant()));
+
+    public static final Item CAPTAIN_AMERICA_SHIELD = register("captain_america_shield",
+            new ThrowingDiscItem(ThrowingDiscTier.CAPTAIN_AMERICA, new Item.Properties().durability(ThrowingDiscTier.CAPTAIN_AMERICA.getDurability()).fireResistant().rarity(Rarity.EPIC)));
 
     private static Item register(String name, Item item) {
         return Registry.register(BuiltInRegistries.ITEM, new ResourceLocation(ThrowingDiscBackport.MODID, name), item);

@@ -197,7 +197,7 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
         playSound(SoundEvents.TRIDENT_HIT_GROUND, 0.9F, 1.2F);
 
         this.bounces++;
-        if (this.bounces >= 5) {
+        if (this.bounces >= this.tier.getMaxBounces()) {
             this.returning = true;
             this.hitEntities.clear();
         }
