@@ -5,6 +5,7 @@ import io.github.derexxd.throwing_disc.item.ThrowingDiscTier;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
@@ -28,8 +29,10 @@ import java.util.Set;
 import java.util.UUID;
 
 public class ThrowingDiscEntity extends ThrowableItemProjectile {
+    private static final Set<ThrowingDiscEntity> ACTIVE_DISCS = new HashSet<>();
     private ThrowingDiscTier tier = ThrowingDiscTier.IRON;
     private InteractionHand thrownHand = InteractionHand.MAIN_HAND;
+    private UUID ownerUUID;
     private int flightTicks = 0;
     private int bounces = 0;
     private boolean returning = false;
@@ -44,6 +47,10 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
         this.setItem(stack.copy());
         this.tier = tier;
         this.thrownHand = hand;
+        this.ownerUUID = shooter.getUUID();
+        if (!level.isClientSide()) {
+            ACTIVE_DISCS.add(this);
+        }
     }
 
     public ThrowingDiscTier getTier() {
@@ -74,10 +81,13 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
         this.flightTicks++;
 
         if (!level().isClientSide()) {
+            if (this.ownerUUID != null) {
+                ACTIVE_DISCS.add(this);
+            }
             Entity owner = getOwner();
 
             if (owner == null || !owner.isAlive()) {
-                if (this.returning) {
+                if (this.flightTicks > 600) {
                     spawnAtLocation(getItem());
                     discard();
                     return;
@@ -182,6 +192,27 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
     }
 
     @Override
+    public void remove(Entity.RemovalReason reason) {
+        ACTIVE_DISCS.remove(this);
+        super.remove(reason);
+    }
+
+    public static void recoverForPlayer(ServerPlayer player) {
+        UUID playerId = player.getUUID();
+        for (ThrowingDiscEntity disc : Set.copyOf(ACTIVE_DISCS)) {
+            if (!disc.isRemoved() && playerId.equals(disc.ownerUUID)) {
+                if (!player.getAbilities().instabuild) {
+                    ItemStack returnStack = disc.getItem();
+                    if (!player.getInventory().add(returnStack)) {
+                        player.drop(returnStack, false);
+                    }
+                }
+                disc.discard();
+            }
+        }
+    }
+
+    @Override
     public void addAdditionalSaveData(CompoundTag compound) {
         super.addAdditionalSaveData(compound);
         compound.putInt("FlightTicks", this.flightTicks);
@@ -189,6 +220,9 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
         compound.putBoolean("Returning", this.returning);
         compound.putString("Tier", this.tier.name());
         compound.putInt("ThrownHand", this.thrownHand.ordinal());
+        if (this.ownerUUID != null) {
+            compound.putUUID("OwnerUUID", this.ownerUUID);
+        }
     }
 
     @Override
@@ -207,6 +241,9 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
         if (compound.contains("ThrownHand")) {
             int handIdx = compound.getInt("ThrownHand");
             this.thrownHand = handIdx >= 0 && handIdx < InteractionHand.values().length ? InteractionHand.values()[handIdx] : InteractionHand.MAIN_HAND;
+        }
+        if (compound.hasUUID("OwnerUUID")) {
+            this.ownerUUID = compound.getUUID("OwnerUUID");
         }
     }
 }

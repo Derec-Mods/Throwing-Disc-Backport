@@ -11,7 +11,7 @@
     }
   },
   "result": {
-    "item": "throwing_disc:diamond_throwing_disc",
+    "item": "throwing_disc_backport:diamond_throwing_disc",
     "count": 1
   }
 }

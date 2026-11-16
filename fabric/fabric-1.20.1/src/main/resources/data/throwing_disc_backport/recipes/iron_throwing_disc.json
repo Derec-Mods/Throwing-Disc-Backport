@@ -11,7 +11,7 @@
     }
   },
   "result": {
-    "item": "throwing_disc:iron_throwing_disc",
+    "item": "throwing_disc_backport:iron_throwing_disc",
     "count": 1
   }
 }

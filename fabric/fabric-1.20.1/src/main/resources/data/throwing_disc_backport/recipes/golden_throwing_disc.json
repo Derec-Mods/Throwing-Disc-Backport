@@ -11,7 +11,7 @@
     }
   },
   "result": {
-    "item": "throwing_disc:golden_throwing_disc",
+    "item": "throwing_disc_backport:golden_throwing_disc",
     "count": 1
   }
 }
