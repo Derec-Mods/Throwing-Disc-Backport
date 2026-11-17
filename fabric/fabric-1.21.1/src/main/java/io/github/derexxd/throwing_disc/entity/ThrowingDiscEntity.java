@@ -53,16 +53,9 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
         this.thrownHand = hand;
         this.ownerUUID = shooter.getUUID();
         this.setNoGravity(true);
-    }
-
-    @Override
-    protected Item getDefaultItem() {
-        return ModItems.IRON_THROWING_DISC;
-    }
-
-    @Override
-    protected void defineSynchedData(SynchedEntityData.Builder builder) {
-        super.defineSynchedData(builder);
+        if (!level.isClientSide()) {
+            ACTIVE_DISCS.add(this);
+        }
     }
 
     public ThrowingDiscTier getTier() {
@@ -78,8 +71,8 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
     }
 
     @Override
-    public boolean isNoGravity() {
-        return true;
+    protected Item getDefaultItem() {
+        return ModItems.IRON_THROWING_DISC;
     }
 
     @Override
@@ -88,12 +81,17 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
     }
 
     @Override
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+    }
+
+    @Override
     public void tick() {
         super.tick();
         this.flightTicks++;
 
         if (!level().isClientSide()) {
-            if (this.flightTicks == 1) {
+            if (this.ownerUUID != null) {
                 ACTIVE_DISCS.add(this);
             }
             Entity owner = getOwner();
@@ -115,44 +113,31 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
                 setNoGravity(true);
                 Vec3 target = owner.getEyePosition().subtract(0.0, 0.2, 0.0);
                 Vec3 currentPos = position();
-                Vec3 toOwner = target.subtract(currentPos);
-                double distance = toOwner.length();
+                Vec3 dir = target.subtract(currentPos);
+                double dist = dir.length();
 
-                if (distance < 1.2) {
+                if (dist < 1.3) {
                     if (owner instanceof Player player) {
-                        catchDisc(player);
-                        return;
+                        if (!player.getAbilities().instabuild) {
+                            ItemStack returnStack = getItem();
+                            if (player.getItemInHand(this.thrownHand).isEmpty()) {
+                                player.setItemInHand(this.thrownHand, returnStack);
+                            } else if (!player.getInventory().add(returnStack)) {
+                                player.drop(returnStack, false);
+                            }
+                        }
+                        level().playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.TRIDENT_RETURN, SoundSource.PLAYERS, 0.6F, 1.0F);
                     }
-                }
-
-                double returnSpeed = Math.min(0.5 + (this.flightTicks - 25) * 0.04, 1.4);
-                Vec3 returnVelocity = toOwner.normalize().scale(returnSpeed);
-                setDeltaMovement(returnVelocity);
-            }
-
-            if (this.flightTicks > 1200) {
-                if (owner instanceof Player player) {
-                    catchDisc(player);
-                } else {
                     discard();
+                    return;
                 }
-            }
-        }
-    }
 
-    private void catchDisc(Player player) {
-        ItemStack returnStack = getItem();
-        if (!player.getAbilities().instabuild) {
-            ItemStack heldInThrownHand = player.getItemInHand(this.thrownHand);
-            if (heldInThrownHand.isEmpty()) {
-                player.setItemInHand(this.thrownHand, returnStack);
-            } else if (!player.getInventory().add(returnStack)) {
-                player.drop(returnStack, false);
+                double speed = Math.min(1.2, 0.5 + (this.flightTicks * 0.02));
+                Vec3 desiredVelocity = dir.normalize().scale(speed);
+                Vec3 currentVelocity = getDeltaMovement();
+                setDeltaMovement(currentVelocity.lerp(desiredVelocity, 0.28));
             }
         }
-        level().playSound(null, player.getX(), player.getY(), player.getZ(),
-                SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.6F, 1.4F);
-        discard();
     }
 
     @Override
@@ -246,37 +231,37 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
     }
 
     @Override
-    public void addAdditionalSaveData(CompoundTag tag) {
-        super.addAdditionalSaveData(tag);
-        tag.putInt("FlightTicks", this.flightTicks);
-        tag.putInt("Bounces", this.bounces);
-        tag.putBoolean("Returning", this.returning);
-        tag.putString("Tier", this.tier.name());
-        tag.putInt("ThrownHand", this.thrownHand.ordinal());
+    public void addAdditionalSaveData(CompoundTag compound) {
+        super.addAdditionalSaveData(compound);
+        compound.putInt("FlightTicks", this.flightTicks);
+        compound.putInt("Bounces", this.bounces);
+        compound.putBoolean("Returning", this.returning);
+        compound.putString("Tier", this.tier.name());
+        compound.putInt("ThrownHand", this.thrownHand.ordinal());
         if (this.ownerUUID != null) {
-            tag.putUUID("OwnerUUID", this.ownerUUID);
+            compound.putUUID("OwnerUUID", this.ownerUUID);
         }
     }
 
     @Override
-    public void readAdditionalSaveData(CompoundTag tag) {
-        super.readAdditionalSaveData(tag);
-        this.flightTicks = tag.getInt("FlightTicks");
-        this.bounces = tag.getInt("Bounces");
-        this.returning = tag.getBoolean("Returning");
-        if (tag.contains("Tier")) {
+    public void readAdditionalSaveData(CompoundTag compound) {
+        super.readAdditionalSaveData(compound);
+        this.flightTicks = compound.getInt("FlightTicks");
+        this.bounces = compound.getInt("Bounces");
+        this.returning = compound.getBoolean("Returning");
+        if (compound.contains("Tier")) {
             try {
-                this.tier = ThrowingDiscTier.valueOf(tag.getString("Tier"));
-            } catch (IllegalArgumentException e) {
+                this.tier = ThrowingDiscTier.valueOf(compound.getString("Tier"));
+            } catch (Exception ignored) {
                 this.tier = ThrowingDiscTier.IRON;
             }
         }
-        if (tag.contains("ThrownHand")) {
-            int handOrdinal = tag.getInt("ThrownHand");
-            this.thrownHand = handOrdinal == 1 ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
+        if (compound.contains("ThrownHand")) {
+            int handIdx = compound.getInt("ThrownHand");
+            this.thrownHand = handIdx >= 0 && handIdx < InteractionHand.values().length ? InteractionHand.values()[handIdx] : InteractionHand.MAIN_HAND;
         }
-        if (tag.hasUUID("OwnerUUID")) {
-            this.ownerUUID = tag.getUUID("OwnerUUID");
+        if (compound.hasUUID("OwnerUUID")) {
+            this.ownerUUID = compound.getUUID("OwnerUUID");
         }
     }
 }

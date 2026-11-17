@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "throwing_disc_backport:item/copper_throwing_disc"
+  }
+}
