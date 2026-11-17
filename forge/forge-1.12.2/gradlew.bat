@@ -1,19 +1,3 @@
-@rem
-@rem Copyright 2015 the original author or authors.
-@rem
-@rem Licensed under the Apache License, Version 2.0 (the "License");
-@rem you may not use this file except in compliance with the License.
-@rem You may obtain a copy of the License at
-@rem
-@rem      http://www.apache.org/licenses/LICENSE-2.0
-@rem
-@rem Unless required by applicable law or agreed to in writing, software
-@rem distributed under the License is distributed on an "AS IS" BASIS,
-@rem WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-@rem See the License for the specific language governing permissions and
-@rem limitations under the License.
-@rem
-
 @if "%DEBUG%" == "" @echo off
 @rem ##########################################################################
 @rem
@@ -24,29 +8,13 @@
 @rem Set local scope for the variables with windows NT shell
 if "%OS%"=="Windows_NT" setlocal
 
-@rem Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass JVM options to this script.
-set DEFAULT_JVM_OPTS=
-
 set DIRNAME=%~dp0
 if "%DIRNAME%" == "" set DIRNAME=.
 set APP_BASE_NAME=%~n0
 set APP_HOME=%DIRNAME%
 
-@rem Project-local JDK 8 for Forge 1.12.2 (setlocal scope only — does NOT change system JAVA_HOME).
-@rem Optional one-line override: create jdk.local in this folder with your JDK 8 path.
-set "PROJECT_JAVA_HOME="
-if exist "%APP_HOME%jdk.local" (
-    for /f "usebackq delims=" %%i in ("%APP_HOME%jdk.local") do set "PROJECT_JAVA_HOME=%%i"
-)
-if not defined PROJECT_JAVA_HOME (
-    if defined JAVA_HOME (
-        set "PROJECT_JAVA_HOME=%JAVA_HOME%"
-    )
-)
-if defined PROJECT_JAVA_HOME (
-    set "JAVA_HOME=%PROJECT_JAVA_HOME%"
-    set "PATH=%JAVA_HOME%\bin;%PATH%"
-)
+@rem Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass JVM options to this script.
+set DEFAULT_JVM_OPTS="-Xmx64m"
 
 @rem Find java.exe
 if defined JAVA_HOME goto findJavaFromJavaHome
@@ -78,10 +46,9 @@ echo location of your Java installation.
 goto fail
 
 :init
-@rem Get command-line arguments, handling Windowz variants
+@rem Get command-line arguments, handling Windows variants
 
 if not "%OS%" == "Windows_NT" goto win9xME_args
-if "%@eval[2+2]" == "4" goto 4NT_args
 
 :win9xME_args
 @rem Slurp the command line arguments.
@@ -92,11 +59,6 @@ set _SKIP=2
 if "x%~1" == "x" goto execute
 
 set CMD_LINE_ARGS=%*
-goto execute
-
-:4NT_args
-@rem Get arguments from the 4NT Shell from JP Software
-set CMD_LINE_ARGS=%$
 
 :execute
 @rem Setup the command line
