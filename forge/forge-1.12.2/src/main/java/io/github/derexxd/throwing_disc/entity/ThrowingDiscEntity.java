@@ -109,8 +109,8 @@ public class ThrowingDiscEntity extends EntityThrowable implements IEntityAdditi
             return;
         }
 
-        BlockPos currentPos = new BlockPos(this.posX, this.posY, this.posZ);
-        IBlockState state = this.world.getBlockState(currentPos);
+        BlockPos pos = new BlockPos(this.posX, this.posY, this.posZ);
+        IBlockState state = this.world.getBlockState(pos);
         if (state.getMaterial() == Material.FIRE || state.getMaterial() == Material.LAVA) {
             this.setFire(5);
         }
