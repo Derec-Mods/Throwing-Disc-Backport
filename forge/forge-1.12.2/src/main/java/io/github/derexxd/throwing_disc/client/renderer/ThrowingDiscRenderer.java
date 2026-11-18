@@ -4,6 +4,7 @@ import io.github.derexxd.throwing_disc.entity.ThrowingDiscEntity;
 import io.github.derexxd.throwing_disc.item.ModItems;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderItem;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.entity.Render;
@@ -34,6 +35,11 @@ public class ThrowingDiscRenderer extends Render<ThrowingDiscEntity> {
         GlStateManager.rotate(spinAngle, 0.0F, 0.0F, 1.0F);
 
         this.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
+
+        int brightness = entity.getBrightnessForRender();
+        int sky = Math.max(brightness >> 16 & 65535, 180);
+        int block = Math.max(brightness & 65535, 180);
+        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float) block, (float) sky);
 
         ItemStack stack = entity.getItem();
         if (stack.isEmpty()) {

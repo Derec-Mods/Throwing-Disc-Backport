@@ -120,26 +120,36 @@ public class ThrowingDiscEntity extends EntityThrowable implements IEntityAdditi
         }
         EntityLivingBase owner = this.getOwner();
 
-        if (owner == null || !owner.isEntityAlive()) {
-                if (this.flightTicks > 600) {
-                    this.entityDropItem(this.getDiscStack(), 0.0F);
-                    this.setDead();
-                    return;
+        if (this.flightTicks > 240) {
+            if (owner instanceof EntityPlayer && owner.isEntityAlive()) {
+                EntityPlayer player = (EntityPlayer) owner;
+                if (!player.capabilities.isCreativeMode) {
+                    ItemStack returnStack = this.getDiscStack();
+                    if (!player.inventory.addItemStackToInventory(returnStack)) {
+                        player.dropItem(returnStack, false);
+                    }
                 }
+            } else {
+                this.entityDropItem(this.getDiscStack(), 0.0F);
             }
+            this.setDead();
+            return;
+        }
 
-            if (!this.returning) {
-                if (this.flightTicks >= 25) {
-                    this.returning = true;
-                    this.hitEntities.clear();
-                }
-            } else if (owner != null) {
+        if (!this.returning) {
+            if (this.flightTicks >= 25) {
+                this.returning = true;
+                this.hitEntities.clear();
+                this.noClip = true;
+            }
+        } else if (owner != null) {
+            this.noClip = true;
                 Vec3d target = new Vec3d(owner.posX, owner.posY + (double) owner.getEyeHeight() - 0.2, owner.posZ);
                 Vec3d currentPos = new Vec3d(this.posX, this.posY, this.posZ);
                 Vec3d dir = target.subtract(currentPos);
                 double dist = dir.lengthVector();
 
-                if (dist < 1.3) {
+                if (dist < 1.8) {
                     if (owner instanceof EntityPlayer) {
                         EntityPlayer player = (EntityPlayer) owner;
                         if (!player.capabilities.isCreativeMode) {
@@ -210,6 +220,7 @@ public class ThrowingDiscEntity extends EntityThrowable implements IEntityAdditi
                 if (this.bouncesThisTick > 2) {
                     this.returning = true;
                     this.hitEntities.clear();
+                    this.noClip = true;
                     return;
                 }
             } else {
@@ -222,7 +233,7 @@ public class ThrowingDiscEntity extends EntityThrowable implements IEntityAdditi
                 reflected = reflected.normalize().scale(1.25);
             }
 
-            this.setPosition(result.hitVec.x + normal.x * 0.28, result.hitVec.y + normal.y * 0.28, result.hitVec.z + normal.z * 0.28);
+            this.setPosition(result.hitVec.x + normal.x * 0.12, result.hitVec.y + normal.y * 0.12, result.hitVec.z + normal.z * 0.12);
             this.motionX = reflected.x;
             this.motionY = reflected.y;
             this.motionZ = reflected.z;
@@ -232,6 +243,7 @@ public class ThrowingDiscEntity extends EntityThrowable implements IEntityAdditi
             if (this.bounces >= this.tier.getMaxBounces()) {
                 this.returning = true;
                 this.hitEntities.clear();
+                this.noClip = true;
             }
         }
     }
