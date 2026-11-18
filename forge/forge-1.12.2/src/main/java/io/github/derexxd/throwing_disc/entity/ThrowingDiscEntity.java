@@ -2,6 +2,7 @@ package io.github.derexxd.throwing_disc.entity;
 
 import io.github.derexxd.throwing_disc.item.ModItems;
 import io.github.derexxd.throwing_disc.item.ThrowingDiscTier;
+import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -14,17 +15,23 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
+import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldServer;
+
+import io.netty.buffer.ByteBuf;
+import net.minecraftforge.fml.common.network.ByteBufUtils;
+import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-public class ThrowingDiscEntity extends EntityThrowable {
+public class ThrowingDiscEntity extends EntityThrowable implements IEntityAdditionalSpawnData {
     private static final Set<ThrowingDiscEntity> ACTIVE_DISCS = new HashSet<>();
     private ItemStack discStack = ItemStack.EMPTY;
     private ThrowingDiscTier tier = ThrowingDiscTier.IRON;
@@ -74,6 +81,17 @@ public class ThrowingDiscEntity extends EntityThrowable {
         return this.returning;
     }
 
+    public EntityLivingBase getOwner() {
+        EntityLivingBase thrower = this.getThrower();
+        if (thrower == null && this.ownerUUID != null && this.world instanceof WorldServer) {
+            Entity entity = ((WorldServer) this.world).getEntityFromUuid(this.ownerUUID);
+            if (entity instanceof EntityLivingBase) {
+                return (EntityLivingBase) entity;
+            }
+        }
+        return thrower;
+    }
+
     @Override
     protected float getGravityVelocity() {
         return 0.0F;
@@ -84,13 +102,25 @@ public class ThrowingDiscEntity extends EntityThrowable {
         super.onUpdate();
         this.flightTicks++;
 
-        if (!this.world.isRemote) {
-            if (this.ownerUUID != null) {
-                ACTIVE_DISCS.add(this);
+        if (this.world.isRemote) {
+            if (this.isBurning()) {
+                this.world.spawnParticle(EnumParticleTypes.FLAME, this.posX + (this.rand.nextDouble() - 0.5D) * 0.2D, this.posY + (this.rand.nextDouble() - 0.5D) * 0.2D, this.posZ + (this.rand.nextDouble() - 0.5D) * 0.2D, 0.0D, 0.0D, 0.0D);
             }
-            EntityLivingBase owner = this.getThrower();
+            return;
+        }
 
-            if (owner == null || !owner.isEntityAlive()) {
+        BlockPos currentPos = new BlockPos(this.posX, this.posY, this.posZ);
+        IBlockState state = this.world.getBlockState(currentPos);
+        if (state.getMaterial() == Material.FIRE || state.getMaterial() == Material.LAVA) {
+            this.setFire(5);
+        }
+
+        if (this.ownerUUID != null) {
+            ACTIVE_DISCS.add(this);
+        }
+        EntityLivingBase owner = this.getOwner();
+
+        if (owner == null || !owner.isEntityAlive()) {
                 if (this.flightTicks > 600) {
                     this.entityDropItem(this.getDiscStack(), 0.0F);
                     this.setDead();
@@ -141,7 +171,7 @@ public class ThrowingDiscEntity extends EntityThrowable {
     protected void onImpact(RayTraceResult result) {
         if (result.typeOfHit == RayTraceResult.Type.ENTITY) {
             Entity target = result.entityHit;
-            if (target == this.getThrower() && this.returning) {
+            if (target == this.getOwner() && this.returning) {
                 return;
             }
 
@@ -150,9 +180,12 @@ public class ThrowingDiscEntity extends EntityThrowable {
             }
 
             this.hitEntities.add(target.getEntityId());
-            EntityLivingBase owner = this.getThrower();
+            EntityLivingBase owner = this.getOwner();
             DamageSource damageSource = owner != null ? DamageSource.causeThrownDamage(this, owner) : DamageSource.GENERIC;
             target.attackEntityFrom(damageSource, this.tier.getDamage());
+            if (this.isBurning()) {
+                target.setFire(5);
+            }
             this.playSound(SoundEvents.ENTITY_ARROW_HIT, 1.0F, 1.0F);
         } else if (result.typeOfHit == RayTraceResult.Type.BLOCK) {
             if (this.returning) {
@@ -262,6 +295,21 @@ public class ThrowingDiscEntity extends EntityThrowable {
         }
         if (compound.hasUniqueId("OwnerUUID")) {
             this.ownerUUID = compound.getUniqueId("OwnerUUID");
+        }
+    }
+
+    @Override
+    public void writeSpawnData(ByteBuf buffer) {
+        ByteBufUtils.writeItemStack(buffer, this.getDiscStack());
+        buffer.writeInt(this.tier.ordinal());
+    }
+
+    @Override
+    public void readSpawnData(ByteBuf buffer) {
+        this.discStack = ByteBufUtils.readItemStack(buffer);
+        int tierIdx = buffer.readInt();
+        if (tierIdx >= 0 && tierIdx < ThrowingDiscTier.values().length) {
+            this.tier = ThrowingDiscTier.values()[tierIdx];
         }
     }
 }

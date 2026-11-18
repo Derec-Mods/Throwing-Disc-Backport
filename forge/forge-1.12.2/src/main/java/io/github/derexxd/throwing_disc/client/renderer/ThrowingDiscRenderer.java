@@ -27,12 +27,11 @@ public class ThrowingDiscRenderer extends Render<ThrowingDiscEntity> {
         GlStateManager.translate((float) x, (float) y, (float) z);
         GlStateManager.enableRescaleNormal();
 
-        GlStateManager.rotate(entity.prevRotationYaw + (entity.rotationYaw - entity.prevRotationYaw) * partialTicks - 90.0F, 0.0F, 1.0F, 0.0F);
-        GlStateManager.rotate(entity.prevRotationPitch + (entity.rotationPitch - entity.prevRotationPitch) * partialTicks, 0.0F, 0.0F, 1.0F);
-
         float age = (float) entity.ticksExisted + partialTicks;
+        float spinAngle = age * 40.0F;
+
         GlStateManager.rotate(90.0F, 1.0F, 0.0F, 0.0F);
-        GlStateManager.rotate(age * 40.0F, 0.0F, 0.0F, 1.0F);
+        GlStateManager.rotate(spinAngle, 0.0F, 0.0F, 1.0F);
 
         this.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
 
@@ -46,7 +45,7 @@ public class ThrowingDiscRenderer extends Render<ThrowingDiscEntity> {
             GlStateManager.enableOutlineMode(this.getTeamColor(entity));
         }
 
-        this.itemRenderer.renderItem(stack, ItemCameraTransforms.TransformType.GROUND);
+        this.itemRenderer.renderItem(stack, ItemCameraTransforms.TransformType.FIXED);
 
         if (this.renderOutlines) {
             GlStateManager.disableOutlineMode();

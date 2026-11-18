@@ -52,4 +52,9 @@ public class ThrowingDiscItem extends Item {
         ItemStack target = this.tier.getRepairItemStack();
         return (!target.isEmpty() && net.minecraftforge.oredict.OreDictionary.itemMatches(target, repair, false)) || super.getIsRepairable(toRepair, repair);
     }
+
+    @Override
+    public int getItemEnchantability() {
+        return this.tier == ThrowingDiscTier.GOLDEN ? 22 : (this.tier == ThrowingDiscTier.NETHERITE ? 15 : 10);
+    }
 }
