@@ -104,7 +104,7 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
                         if (player.getItemInHand(this.thrownHand).isEmpty()) {
                             player.setItemInHand(this.thrownHand, returnStack);
                         } else if (!player.getInventory().add(returnStack)) {
-                            player.drop(returnStack, false, Prediction.SERVER_ONLY);
+                            player.drop(returnStack, false);
                         }
                     }
                 } else {

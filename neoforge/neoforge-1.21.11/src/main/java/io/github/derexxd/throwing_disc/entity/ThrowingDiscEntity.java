@@ -108,7 +108,9 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
                         }
                     }
                 } else {
-                    spawnAtLocation(getItem());
+                    if (level() instanceof ServerLevel serverLevel) {
+                        spawnAtLocation(serverLevel, getItem());
+                    }
                 }
                 discard();
                 return;
