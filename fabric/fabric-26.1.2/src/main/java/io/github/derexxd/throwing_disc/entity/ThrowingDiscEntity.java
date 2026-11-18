@@ -97,22 +97,33 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
             }
             Entity owner = getOwner();
 
-            if (owner == null || !owner.isAlive()) {
-                if (this.flightTicks > 600) {
+            if (this.flightTicks > 240) {
+                if (owner instanceof Player player && owner.isAlive()) {
+                    if (!player.getAbilities().instabuild) {
+                        ItemStack returnStack = getItem();
+                        if (player.getItemInHand(this.thrownHand).isEmpty()) {
+                            player.setItemInHand(this.thrownHand, returnStack);
+                        } else if (!player.getInventory().add(returnStack)) {
+                            player.drop(returnStack, false, Prediction.SERVER_ONLY);
+                        }
+                    }
+                } else {
                     if (level() instanceof ServerLevel serverLevel) {
                         spawnAtLocation(serverLevel, getItem());
                     }
-                    discard();
-                    return;
                 }
+                discard();
+                return;
             }
 
             if (!this.returning) {
                 if (this.flightTicks >= 25) {
                     this.returning = true;
                     this.hitEntities.clear();
+                    this.noPhysics = true;
                 }
             } else if (owner != null) {
+                this.noPhysics = true;
                 setNoGravity(true);
                 Vec3 target = owner.getEyePosition().subtract(0.0, 0.2, 0.0);
                 Vec3 currentPos = position();
@@ -145,8 +156,11 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
 
     @Override
     protected void onHitEntity(EntityHitResult hitResult) {
+        if (this.returning) {
+            return;
+        }
         Entity target = hitResult.getEntity();
-        if (target == getOwner() && this.returning) {
+        if (target == getOwner()) {
             return;
         }
 
@@ -209,6 +223,7 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
         if (this.bounces >= this.tier.getMaxBounces()) {
             this.returning = true;
             this.hitEntities.clear();
+            this.noPhysics = true;
         }
     }
 

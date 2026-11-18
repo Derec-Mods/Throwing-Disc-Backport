@@ -36,6 +36,7 @@ sourceSets {
 			]
 			exclude "assets/renders/**"
 			exclude "assets/screenshots/**"
+			exclude "data/**"
 		}
 	}
 }
