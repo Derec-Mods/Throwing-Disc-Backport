@@ -28,8 +28,12 @@ compileJava {
 
 sourceSets {
 	main {
+		output.resourcesDir = output.classesDir
 		resources {
-			srcDir project.file("../../shared")
+			srcDirs = [
+				project.file("src/main/resources"),
+				project.file("../../shared")
+			]
 			exclude "assets/renders/**"
 			exclude "assets/screenshots/**"
 		}
@@ -88,5 +92,12 @@ processResources {
 tasks.whenTaskAdded { task ->
 	if (task.name == 'runClient' || task.name == 'runServer') {
 		task.dependsOn 'classes'
+	}
+}
+
+classes.doLast {
+	copy {
+		from "build/resources/main"
+		into "build/classes/java/main"
 	}
 }
