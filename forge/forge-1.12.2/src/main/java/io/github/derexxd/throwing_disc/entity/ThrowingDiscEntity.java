@@ -206,7 +206,19 @@ public class ThrowingDiscEntity extends EntityThrowable implements IEntityAdditi
             if (pos != null) {
                 IBlockState state = this.world.getBlockState(pos);
                 if (state.getCollisionBoundingBox(this.world, pos) == Block.NULL_AABB || state.getMaterial().isLiquid()) {
-                    return;
+                    Vec3d motionVec = new Vec3d(this.motionX, this.motionY, this.motionZ);
+                    if (motionVec.lengthVector() > 0.001) {
+                        Vec3d start = result.hitVec.add(motionVec.normalize().scale(0.1));
+                        Vec3d end = new Vec3d(this.posX + this.motionX, this.posY + this.motionY, this.posZ + this.motionZ);
+                        RayTraceResult next = this.world.rayTraceBlocks(start, end, false, true, false);
+                        if (next != null && next.typeOfHit == RayTraceResult.Type.BLOCK) {
+                            result = next;
+                        } else {
+                            return;
+                        }
+                    } else {
+                        return;
+                    }
                 }
             }
 
