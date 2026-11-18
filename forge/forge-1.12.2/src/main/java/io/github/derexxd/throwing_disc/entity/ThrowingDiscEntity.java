@@ -175,7 +175,6 @@ public class ThrowingDiscEntity extends EntityThrowable implements IEntityAdditi
                 this.motionZ = lerped.z;
             }
         }
-    }
 
     @Override
     protected void onImpact(RayTraceResult result) {
