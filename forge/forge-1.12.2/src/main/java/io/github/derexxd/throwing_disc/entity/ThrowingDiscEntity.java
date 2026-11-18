@@ -2,6 +2,7 @@ package io.github.derexxd.throwing_disc.entity;
 
 import io.github.derexxd.throwing_disc.item.ModItems;
 import io.github.derexxd.throwing_disc.item.ThrowingDiscTier;
+import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
@@ -199,6 +200,14 @@ public class ThrowingDiscEntity extends EntityThrowable implements IEntityAdditi
         } else if (result.typeOfHit == RayTraceResult.Type.BLOCK) {
             if (this.returning) {
                 return;
+            }
+
+            BlockPos pos = result.getBlockPos();
+            if (pos != null) {
+                IBlockState state = this.world.getBlockState(pos);
+                if (state.getCollisionBoundingBox(this.world, pos) == Block.NULL_AABB || state.getMaterial().isLiquid()) {
+                    return;
+                }
             }
 
             EnumFacing face = result.sideHit;

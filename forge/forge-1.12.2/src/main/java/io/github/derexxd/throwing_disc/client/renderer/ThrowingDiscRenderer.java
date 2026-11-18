@@ -4,7 +4,6 @@ import io.github.derexxd.throwing_disc.entity.ThrowingDiscEntity;
 import io.github.derexxd.throwing_disc.item.ModItems;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderItem;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.entity.Render;
@@ -36,10 +35,11 @@ public class ThrowingDiscRenderer extends Render<ThrowingDiscEntity> {
 
         this.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
 
-        int brightness = entity.getBrightnessForRender();
-        int sky = Math.max(brightness >> 16 & 65535, 180);
-        int block = Math.max(brightness & 65535, 180);
-        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float) block, (float) sky);
+        GlStateManager.enableBlend();
+        GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
+        GlStateManager.enableAlpha();
+        GlStateManager.alphaFunc(516, 0.1F);
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
 
         ItemStack stack = entity.getItem();
         if (stack.isEmpty()) {
@@ -51,12 +51,14 @@ public class ThrowingDiscRenderer extends Render<ThrowingDiscEntity> {
             GlStateManager.enableOutlineMode(this.getTeamColor(entity));
         }
 
-        this.itemRenderer.renderItem(stack, ItemCameraTransforms.TransformType.FIXED);
+        this.itemRenderer.renderItem(stack, ItemCameraTransforms.TransformType.GROUND);
 
         if (this.renderOutlines) {
             GlStateManager.disableOutlineMode();
             GlStateManager.disableColorMaterial();
         }
+
+        GlStateManager.disableBlend();
 
         GlStateManager.disableRescaleNormal();
         GlStateManager.popMatrix();

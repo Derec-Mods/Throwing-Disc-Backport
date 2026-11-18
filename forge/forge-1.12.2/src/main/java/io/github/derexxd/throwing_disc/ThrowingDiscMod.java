@@ -16,7 +16,7 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 public class ThrowingDiscMod {
     public static final String MODID = "throwing_disc_backport";
     public static final String NAME = "Throwing Disc Backport";
-    public static final String VERSION = "1.0.0.3";
+    public static final String VERSION = "1.1.0.1";
 
     @Mod.Instance(MODID)
     public static ThrowingDiscMod instance;
