@@ -51,7 +51,7 @@ public class ThrowingDiscRenderer extends Render<ThrowingDiscEntity> {
             GlStateManager.enableOutlineMode(this.getTeamColor(entity));
         }
 
-        this.itemRenderer.renderItem(stack, ItemCameraTransforms.TransformType.GROUND);
+        this.itemRenderer.renderItem(stack, ItemCameraTransforms.TransformType.FIXED);
 
         if (this.renderOutlines) {
             GlStateManager.disableOutlineMode();
