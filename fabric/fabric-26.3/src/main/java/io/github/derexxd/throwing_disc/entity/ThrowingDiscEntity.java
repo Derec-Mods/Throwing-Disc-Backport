@@ -190,7 +190,6 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
             onHitBlock(blockHit);
         } else {
             setPos(end.x, end.y, end.z);
-            checkInsideBlocks();
         }
     }
 
@@ -258,7 +257,7 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
         }
 
         Direction face = hitResult.getDirection();
-        Vec3 normal = Vec3.atLowerCornerOf(face.getNormal());
+        Vec3 normal = new Vec3(face.getStepX(), face.getStepY(), face.getStepZ());
         Vec3 motion = getDeltaMovement();
 
         double dot = motion.dot(normal);

@@ -283,7 +283,7 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
         super.remove(reason);
     }
 
-    public static void recoverForPlayer(ServerPlayer player) {
+    public static void recoverForPlayer(Player player) {
         UUID playerId = player.getUUID();
         for (ThrowingDiscEntity disc : Set.copyOf(ACTIVE_DISCS)) {
             if (!disc.isRemoved() && playerId.equals(disc.ownerUUID)) {

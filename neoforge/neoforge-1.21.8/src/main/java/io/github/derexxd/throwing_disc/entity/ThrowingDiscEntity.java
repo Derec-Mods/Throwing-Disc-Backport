@@ -5,7 +5,6 @@ import io.github.derexxd.throwing_disc.item.ThrowingDiscTier;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -27,6 +26,8 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -188,7 +189,6 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
             onHitBlock(blockHit);
         } else {
             setPos(end.x, end.y, end.z);
-            checkInsideBlocks();
         }
     }
 
@@ -256,7 +256,7 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
         }
 
         Direction face = hitResult.getDirection();
-        Vec3 normal = Vec3.atLowerCornerOf(face.getNormal());
+        Vec3 normal = new Vec3(face.getStepX(), face.getStepY(), face.getStepZ());
         Vec3 motion = getDeltaMovement();
 
         double dot = motion.dot(normal);
@@ -298,39 +298,32 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
     }
 
     @Override
-    public void addAdditionalSaveData(CompoundTag compound) {
-        super.addAdditionalSaveData(compound);
-        compound.putInt("FlightTicks", this.flightTicks);
-        compound.putInt("Bounces", this.bounces);
-        compound.putBoolean("Returning", isReturning());
-        compound.putString("Tier", this.tier.name());
-        compound.putInt("ThrownHand", this.thrownHand.ordinal());
+    protected void addAdditionalSaveData(ValueOutput output) {
+        super.addAdditionalSaveData(output);
+        output.putInt("FlightTicks", this.flightTicks);
+        output.putInt("Bounces", this.bounces);
+        output.putBoolean("Returning", isReturning());
+        output.putString("Tier", this.tier.name());
+        output.putInt("ThrownHand", this.thrownHand.ordinal());
         if (this.ownerUUID != null) {
-            compound.putUUID("OwnerUUID", this.ownerUUID);
+            output.putString("OwnerUUID", this.ownerUUID.toString());
         }
     }
 
     @Override
-    public void readAdditionalSaveData(CompoundTag compound) {
-        super.readAdditionalSaveData(compound);
-        this.flightTicks = compound.getInt("FlightTicks");
-        this.bounces = compound.getInt("Bounces");
-        if (compound.contains("Returning")) {
-            setReturning(compound.getBoolean("Returning"));
-        }
-        if (compound.contains("Tier")) {
+    protected void readAdditionalSaveData(ValueInput input) {
+        super.readAdditionalSaveData(input);
+        this.flightTicks = input.getIntOr("FlightTicks", 0);
+        this.bounces = input.getIntOr("Bounces", 0);
+        setReturning(input.getBooleanOr("Returning", false));
+        this.tier = ThrowingDiscTier.valueOf(input.getStringOr("Tier", "IRON"));
+        int handIdx = input.getIntOr("ThrownHand", 0);
+        this.thrownHand = handIdx >= 0 && handIdx < InteractionHand.values().length ? InteractionHand.values()[handIdx] : InteractionHand.MAIN_HAND;
+        input.getString("OwnerUUID").ifPresent(uuidStr -> {
             try {
-                this.tier = ThrowingDiscTier.valueOf(compound.getString("Tier"));
+                this.ownerUUID = UUID.fromString(uuidStr);
             } catch (Exception ignored) {
-                this.tier = ThrowingDiscTier.IRON;
             }
-        }
-        if (compound.contains("ThrownHand")) {
-            int handIdx = compound.getInt("ThrownHand");
-            this.thrownHand = handIdx >= 0 && handIdx < InteractionHand.values().length ? InteractionHand.values()[handIdx] : InteractionHand.MAIN_HAND;
-        }
-        if (compound.hasUUID("OwnerUUID")) {
-            this.ownerUUID = compound.getUUID("OwnerUUID");
-        }
+        });
     }
 }
