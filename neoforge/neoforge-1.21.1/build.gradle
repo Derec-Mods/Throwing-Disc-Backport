@@ -57,6 +57,8 @@ sourceSets {
             srcDir project.file("../../shared")
             exclude "assets/renders/**"
             exclude "assets/screenshots/**"
+            exclude "data/throwing_disc_backport/recipe/**"
+            exclude "data/throwing_disc_backport/recipes/**"
         }
     }
 }

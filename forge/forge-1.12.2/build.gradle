@@ -6,14 +6,19 @@ buildscript {
 	dependencies {
 		classpath 'net.minecraftforge.gradle:ForgeGradle:3.0.194'
 	}
+	configurations.classpath {
+		resolutionStrategy {
+			force 'net.minecraftforge:mergetool:0.2.3.3'
+		}
+	}
 }
 
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
 
-version = '1.0.6.3'
-group = 'net.derexxd.goldendandelion'
-archivesBaseName = 'golden_dandelion'
+version = "${project.mod_version}-${project.minecraft_version}-${project.modloader}"
+group = 'io.github.derexxd'
+archivesBaseName = project.archives_base_name
 
 sourceCompatibility = targetCompatibility = '1.8'
 compileJava {
@@ -21,17 +26,28 @@ compileJava {
 	options.encoding = 'UTF-8'
 }
 
-// FG 3 puts classes and resources in separate dirs; Forge 1.12 dev expects them together.
 sourceSets {
 	main {
 		output.resourcesDir = output.classesDir
+		resources {
+			srcDirs = [
+				project.file("src/main/resources"),
+				project.file("../../shared")
+			]
+			exclude "assets/renders/**"
+			exclude "assets/screenshots/**"
+			exclude "data/**"
+		}
 	}
+}
+
+tasks.withType(AbstractArchiveTask).configureEach {
+	baseName = project.archives_base_name
+	version = "${project.mod_version}-${project.minecraft_version}-${project.modloader}"
 }
 
 minecraft {
 	mappings channel: 'snapshot', version: '20171003-1.12'
-
-	accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
 
 	runs {
 		client {
@@ -47,12 +63,15 @@ minecraft {
 	}
 }
 
+configurations.configureEach {
+	exclude group: 'net.minecraftforge', module: 'mergetool'
+}
+
 dependencies {
 	minecraft 'net.minecraftforge:forge:1.12.2-14.23.5.2860'
 }
 
 jar {
-	// Dev-only workaround for ForgeGradle injecting Side.BUKKIT; must not ship in the mod jar.
 	exclude 'net/minecraftforge/fml/relauncher/Side.class'
 }
 
@@ -68,11 +87,21 @@ processResources {
 
 	from(sourceSets.main.resources.srcDirs) {
 		exclude 'mcmod.info'
+		exclude 'assets/renders/**'
+		exclude 'assets/screenshots/**'
+		exclude 'data/**'
 	}
 }
 
 tasks.whenTaskAdded { task ->
 	if (task.name == 'runClient' || task.name == 'runServer') {
 		task.dependsOn 'classes'
+	}
+}
+
+classes.doLast {
+	copy {
+		from "build/resources/main"
+		into "build/classes/java/main"
 	}
 }

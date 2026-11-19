@@ -111,6 +111,7 @@ sourceSets.main.resources {
     srcDir project.file("../../shared")
     exclude "assets/renders/**"
     exclude "assets/screenshots/**"
+    exclude "data/throwing_disc_backport/recipe/**"
 }
 
 // Sets up a dependency configuration called 'localRuntime' and a deobfuscating one called 'modLocalRuntime'
