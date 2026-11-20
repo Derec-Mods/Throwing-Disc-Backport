@@ -10,18 +10,17 @@ None of this is live in vanilla yet, but this backport will remain completely fa
 
 Disclaimer: Not vibe coded. Unlike most of the other backports popping up, this wasn't just churned out of Claude and left broken.
 
-*   Clean ricochets off walls and corners (no phasing through blocks or sound spam)
-*   Flies flat and straight with zero gravity drop
-*   Works in both main hand and offhand
-*   Pierces through mobs and returns to your hand
-*   Available on Fabric, Forge, and NeoForge
-
 ## Current Features
 
-*   Discs for Copper, Iron, Gold, Diamond, and Netherite tiers
-*   Crafting recipes for all tiers
-*   Bouncing and loyalty return mechanics
-*   Smashes decorated pots on hit
+*   Copper, Iron, Gold, Diamond, and Netherite tiers with unique stats and bounce limits
+*   Crafting and smithing upgrade recipes for all 5 tiers
+*   Flies completely flat and level with zero gravity drop
+*   Clean ricochets off walls, floors, and ceilings (no phasing or sound spam)
+*   Pierces straight through multiple mobs with critical hit particle bursts
+*   Automatic boomerang return straight back to your hand
+*   Works seamlessly in both main hand and offhand (throw while holding a sword)
+*   Smashes decorated pots on impact
+*   Available across Fabric, Forge, and NeoForge
 
 ## Planned Features
 
