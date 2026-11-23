@@ -13,6 +13,7 @@ public class ThrowingDiscBackport implements ModInitializer {
     @Override
     public void onInitialize() {
         ModItems.register();
+        ModItems.registerDispenserBehaviors();
         ModEntities.register();
 
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {

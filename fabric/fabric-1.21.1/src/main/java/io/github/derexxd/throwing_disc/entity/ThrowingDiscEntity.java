@@ -44,11 +44,21 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
     private UUID ownerUUID;
     private int flightTicks = 0;
     private int bounces = 0;
+    private boolean dispensed = false;
     private final Set<UUID> hitEntities = new HashSet<>();
 
     public ThrowingDiscEntity(EntityType<? extends ThrowableItemProjectile> entityType, Level level) {
         super(entityType, level);
         this.setNoGravity(true);
+    }
+
+    public ThrowingDiscEntity(Level level, double x, double y, double z, ItemStack stack, ThrowingDiscTier tier) {
+        super(ModEntities.THROWING_DISC, level);
+        this.setPos(x, y, z);
+        this.setItem(stack.copy());
+        this.tier = tier;
+        this.setNoGravity(true);
+        this.dispensed = true;
     }
 
     public ThrowingDiscEntity(Level level, LivingEntity shooter, ItemStack stack, ThrowingDiscTier tier, InteractionHand hand) {
@@ -81,6 +91,14 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
             this.hitEntities.clear();
             this.noPhysics = true;
         }
+    }
+
+    public boolean isDispensed() {
+        return this.dispensed;
+    }
+
+    public void setDispensed(boolean dispensed) {
+        this.dispensed = dispensed;
     }
 
     @Override
@@ -168,17 +186,24 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
         }
 
         if (!level().isClientSide()) {
-            if (this.ownerUUID != null) {
-                ACTIVE_DISCS.add(this);
-            }
-            if (this.flightTicks > 240) {
-                recoverOrDrop(getOwner());
-                discard();
-                return;
-            }
-            if (this.flightTicks >= 25) {
-                setReturning(true);
-                return;
+            if (this.dispensed) {
+                if (this.flightTicks >= 25) {
+                    dropAsItem();
+                    return;
+                }
+            } else {
+                if (this.ownerUUID != null) {
+                    ACTIVE_DISCS.add(this);
+                }
+                if (this.flightTicks > 240) {
+                    recoverOrDrop(getOwner());
+                    discard();
+                    return;
+                }
+                if (this.flightTicks >= 25) {
+                    setReturning(true);
+                    return;
+                }
             }
         }
 
@@ -223,6 +248,24 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
         } else {
             spawnAtLocation(getItem());
         }
+    }
+
+    private void dropAsItem() {
+        if (!level().isClientSide()) {
+            ItemStack stack = getItem().copy();
+            if (stack.isDamageableItem()) {
+                int newDamage = stack.getDamageValue() + 1;
+                if (newDamage < stack.getMaxDamage()) {
+                    stack.setDamageValue(newDamage);
+                    spawnAtLocation(stack);
+                } else {
+                    playSound(SoundEvents.ITEM_BREAK, 0.8F, 0.8F + level().random.nextFloat() * 0.4F);
+                }
+            } else {
+                spawnAtLocation(stack);
+            }
+        }
+        discard();
     }
 
     @Override
@@ -284,6 +327,10 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
 
             this.bounces++;
             if (this.bounces >= this.tier.getMaxBounces()) {
+                if (this.dispensed) {
+                    dropAsItem();
+                    return;
+                }
                 setReturning(true);
             }
         } else {
@@ -319,6 +366,7 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
         compound.putInt("FlightTicks", this.flightTicks);
         compound.putInt("Bounces", this.bounces);
         compound.putBoolean("Returning", isReturning());
+        compound.putBoolean("Dispensed", this.dispensed);
         compound.putString("Tier", this.tier.name());
         compound.putInt("ThrownHand", this.thrownHand.ordinal());
         if (this.ownerUUID != null) {
@@ -333,6 +381,9 @@ public class ThrowingDiscEntity extends ThrowableItemProjectile {
         this.bounces = compound.getInt("Bounces");
         if (compound.contains("Returning")) {
             setReturning(compound.getBoolean("Returning"));
+        }
+        if (compound.contains("Dispensed")) {
+            this.dispensed = compound.getBoolean("Dispensed");
         }
         if (compound.contains("Tier")) {
             try {
