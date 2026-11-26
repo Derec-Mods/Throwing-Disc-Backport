@@ -140,6 +140,7 @@ public class ThrowingDiscEntity extends EntityThrowable implements IEntityAdditi
                 EntityPlayer player = (EntityPlayer) owner;
                 if (!player.capabilities.isCreativeMode) {
                     ItemStack returnStack = this.getDiscStack();
+                    returnStack.setCount(1);
                     if (!player.inventory.addItemStackToInventory(returnStack)) {
                         player.dropItem(returnStack, false);
                     }
