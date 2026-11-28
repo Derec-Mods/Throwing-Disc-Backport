@@ -54,6 +54,7 @@ public class ThrowingDiscEntity extends EntityThrowable implements IEntityAdditi
     public ThrowingDiscEntity(World world, EntityLivingBase thrower, ItemStack stack, ThrowingDiscTier tier, EnumHand hand) {
         super(world, thrower);
         this.discStack = stack.copy();
+        this.discStack.setCount(1);
         this.tier = tier;
         this.thrownHand = hand;
         this.ownerUUID = thrower.getUniqueID();
@@ -139,6 +140,7 @@ public class ThrowingDiscEntity extends EntityThrowable implements IEntityAdditi
                 EntityPlayer player = (EntityPlayer) owner;
                 if (!player.capabilities.isCreativeMode) {
                     ItemStack returnStack = this.getDiscStack();
+                    returnStack.setCount(1);
                     if (!player.inventory.addItemStackToInventory(returnStack)) {
                         player.dropItem(returnStack, false);
                     }
